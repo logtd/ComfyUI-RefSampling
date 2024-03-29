@@ -27,13 +27,13 @@ class RefController:
 
     def set_cfg(self, cfg: bool):
         for module in self.modules:
-            module.cfg = cfg
+            module.is_cfg = cfg
 
     def set_attention_bound(self, attention_bound: float):
         for module in self.modules:
             module.attention_bound = attention_bound
 
-    def set_style_fidelity(self, style_fidelity: float): 
+    def set_style_fidelity(self, style_fidelity: float):
         for module in self.modules:
             module.style_fidelity = style_fidelity
 
@@ -51,4 +51,5 @@ class RefController:
             module.video_length = video_length
 
     def set_temporal_values_to_default(self):
-        self.set_temporal_values_to(self.default_full_length, self.default_video_length)
+        self.set_temporal_values_to(
+            self.default_full_length, self.default_video_length)

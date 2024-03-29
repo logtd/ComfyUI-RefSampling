@@ -4,7 +4,7 @@ import comfy.model_management
 
 from .ref_config import RefConfig
 from ..modules.ref_controller import RefController, RefMode
-from ..utils.noise_utils import add_noise
+from ..utils.noise_utils import add_noise, add_noise_test
 
 
 def get_base_model(model):
@@ -23,7 +23,7 @@ def prepare_ref_latents(model, ref_latent):
     return ref_latent
 
 
-def create_model_wrapper(model, sigmas, ref_latent, extra_args, ref_config:RefConfig):
+def create_model_wrapper(model, sigmas, ref_latent, extra_args, ref_config: RefConfig):
     # extra_args: ['cond', 'uncond', 'cond_scale', 'model_options', 'seed', 'denoise_mask']
     ref_latent = prepare_ref_latents(model, ref_latent)
 
@@ -44,7 +44,7 @@ def create_model_wrapper(model, sigmas, ref_latent, extra_args, ref_config:RefCo
         if 'control' in cond:
             del cond['control']
         ref_unconds.append(cond)
-    
+
     # Setup ref
     ref_controller.clear_modules()
     is_cfg = extra_args.get('cond_scale', 7) > 1
@@ -57,10 +57,11 @@ def create_model_wrapper(model, sigmas, ref_latent, extra_args, ref_config:RefCo
         # Do Ref Sampling
         ref_controller.set_temporal_values_to(1, 1)
         ref_controller.set_mode(RefMode.WRITE)
-        ref_latent_noised = add_noise(ref_latent, torch.randn_like(ref_latent), sigma[0])
+        ref_latent_noised = add_noise_test(ref_latent, sigma[0])
         ref_sigma = torch.tensor([sigma[0]]*len(ref_latent)).to(sigmas.device)
 
-        model(ref_latent_noised, ref_sigma, **{**kwargs, 'cond': ref_conds, 'uncond': ref_unconds})
+        model(ref_latent_noised, ref_sigma, **
+              {**kwargs, 'cond': ref_conds, 'uncond': ref_unconds})
 
         # Do Latent Sampling
         ref_controller.set_temporal_values_to_default()
@@ -72,12 +73,12 @@ def create_model_wrapper(model, sigmas, ref_latent, extra_args, ref_config:RefCo
         ref_controller.set_mode(RefMode.OFF)
         return latents
 
-
     class RefModelWrapper:
         inner_model = model.inner_model
+
         def __call__(self, *args, **kwargs):
             return model_sample(*args, **kwargs)
-        
+
     return RefModelWrapper()
 
 
@@ -85,9 +86,11 @@ def create_sampler(sample_fn, inversion_latent, ref_config):
     @torch.no_grad()
     def sample(model, latents, sigmas, extra_args=None, callback=None, disable=None, **extra_options):
         # src_latents = prepare_src_latents(model, src_latent_image)
-        model_wrapper = create_model_wrapper(model, sigmas, inversion_latent, extra_args, ref_config)
-        output = sample_fn(model_wrapper, latents, sigmas, extra_args=extra_args, callback=callback, disable=disable)
+        model_wrapper = create_model_wrapper(
+            model, sigmas, inversion_latent, extra_args, ref_config)
+        output = sample_fn(model_wrapper, latents, sigmas,
+                           extra_args=extra_args, callback=callback, disable=disable)
         del model_wrapper
         return output
-    
+
     return sample

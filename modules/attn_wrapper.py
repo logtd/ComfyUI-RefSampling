@@ -32,6 +32,8 @@ def get_attn_wrapper(cls):
                         c_bank = self.ref_bank[1].unsqueeze(0)
                         c_bank = torch.cat([c_bank] * batch_size)
                         bank = torch.cat([uc_bank, c_bank])
+                    elif len(self.ref_bank) == 1:
+                        bank = torch.cat([self.ref_bank] * len(norm_hidden_states))
                     else:
                         bank = self.ref_bank
                     bank_hidden_states = torch.cat([bank, norm_hidden_states], dim=1)
@@ -42,20 +44,20 @@ def get_attn_wrapper(cls):
                             **kwargs
                         )
                     )
-                    attn_output_c = attn_output_uc.clone()
+                    attn_output = attn_output_uc
                     if self.is_cfg and self.style_fidelity > 0:
+                        attn_output_c = attn_output_uc.clone()
                         uc_mask =  torch.Tensor(
                                 [1] * (norm_hidden_states.shape[0] // 2)
                                 + [0] * (norm_hidden_states.shape[0] // 2)
                             ).to(norm_hidden_states.device).bool()
-                        attn_output_c[uc_mask] = (
-                            super().forward(
+                        attn_sub =  super().forward(
                                 norm_hidden_states[uc_mask],
-                                norm_hidden_states[uc_mask],
+                                norm_hidden_states[uc_mask].clone(),
                                 **kwargs
                             )
-                        )
-                    attn_output = self.style_fidelity * attn_output_c + (1.0 - self.style_fidelity) * attn_output_uc
+                        attn_output_c[uc_mask] = attn_sub
+                        attn_output = self.style_fidelity * attn_output_c + (1.0 - self.style_fidelity) * attn_output_uc
                 else:
                     attn_output = super().forward(norm_hidden_states, context, **kwargs)
                 return attn_output
