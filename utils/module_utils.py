@@ -1,6 +1,7 @@
 import torch
 
 from ..modules.attn_wrapper import get_attn_wrapper
+from ..modules.unet_wrapper import get_unet_wrapper
 from ..modules.ref_controller import RefController
 
 
@@ -71,3 +72,12 @@ def setup_ref_attn(model, attn_type):
         ref_controller.add_temporal_transformer(transformer_module)
 
     return ref_controller
+
+
+def setup_ref_unet(model, attn_type):
+    if not hasattr(model.model.diffusion_model, 'is_ref'):
+        ref_controller = setup_ref_attn(model, attn_type)
+        model.model.diffusion_model.__class__ = get_unet_wrapper(model.model.diffusion_model.__class__, ref_controller)
+        return ref_controller
+    return None
+    

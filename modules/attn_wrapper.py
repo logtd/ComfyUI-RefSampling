@@ -9,7 +9,7 @@ def get_attn_wrapper(cls):
         ref_bank = None
         is_cfg = True
         style_fidelity = 0.5
-        ref_attn_weight = 0.5
+        ref_attn_weight = 1.0
         attention_bound = 1.0
         hidden_states = None
 
@@ -25,18 +25,10 @@ def get_attn_wrapper(cls):
                 return super().forward(norm_hidden_states, context, **kwargs)
             if self.ref_mode == RefMode.READ:
                 if self.attention_bound > self.ref_attn_weight:
-                    if len(self.ref_bank) == 2:
-                        batch_size = len(norm_hidden_states) // len(self.ref_bank)
-                        uc_bank = self.ref_bank[0].unsqueeze(0)
-                        uc_bank = torch.cat([uc_bank] * batch_size)
-                        c_bank = self.ref_bank[1].unsqueeze(0)
-                        c_bank = torch.cat([c_bank] * batch_size)
-                        bank = torch.cat([uc_bank, c_bank])
-                    elif len(self.ref_bank) == 1:
-                        bank = torch.cat([self.ref_bank] * len(norm_hidden_states))
-                    else:
-                        bank = self.ref_bank
-                    bank_hidden_states = torch.cat([bank, norm_hidden_states], dim=1)
+                    bank = self.ref_bank
+
+                    self.ref_bank = None
+                    bank_hidden_states = torch.cat([norm_hidden_states, bank], dim=1)
                     attn_output_uc = (
                         super().forward(
                             norm_hidden_states,
@@ -52,7 +44,7 @@ def get_attn_wrapper(cls):
                                 + [0] * (norm_hidden_states.shape[0] // 2)
                             ).to(norm_hidden_states.device).bool()
                         attn_sub =  super().forward(
-                                norm_hidden_states[uc_mask],
+                                norm_hidden_states[uc_mask].clone(),
                                 norm_hidden_states[uc_mask].clone(),
                                 **kwargs
                             )

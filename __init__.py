@@ -1,14 +1,12 @@
 from .nodes.apply_ref_unet_node import ApplyRefUNetNode
-from .nodes.ref_sampler_node import RefSamplerNode, RefSamplerCustomNode
+from .nodes.ref_apply_node import RefApplyNode
 
 NODE_CLASS_MAPPINGS = {
     "ApplyRefUNetNode": ApplyRefUNetNode,
-    "RefSamplerNode": RefSamplerNode,
-    "RefSamplerCustomNode": RefSamplerCustomNode,
+    "RefApplyNode": RefApplyNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "ApplyRefUNetNode": "Apply Ref UNet",
-    "RefSamplerNode": "Ref Sampler",
-    "RefSamplerCustomNode": "Ref Sampler Custom",
+    "RefApplyNode": "Apply Reference",
 }

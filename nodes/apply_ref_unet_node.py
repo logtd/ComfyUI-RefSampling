@@ -1,5 +1,5 @@
 
-from ..utils.module_utils import setup_ref_attn
+from ..utils.module_utils import setup_ref_unet
 
 class ApplyRefUNetNode:
     @classmethod
@@ -14,6 +14,7 @@ class ApplyRefUNetNode:
     CATEGORY = "flow"
 
     def apply(self, model, attn):
-        ref_controller = setup_ref_attn(model, attn)
-        model.model_options['ref_controller'] = ref_controller
+        ref_controller = setup_ref_unet(model, attn)
+        if ref_controller is not None:
+            model.model_options['ref_controller'] = ref_controller
         return (model, )
