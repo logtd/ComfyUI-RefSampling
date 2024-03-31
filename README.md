@@ -4,7 +4,7 @@ This is a proof-of-concept repo that implements:
 * "Reference CNet" found in popular Image generation applications such as [Automatic11](https://github.com/Mikubill/sd-webui-controlnet/discussions/1236)
   * Allows image generation that adheres content to a reference image
 * [Visual Style Prompting](https://curryjung.github.io/VisualStylePrompt/)
-  * Allows image generation that adhers style to a reference image
+  * Allows image generation that adheres style to a reference image
 
 Both of these techniques utilize attention injection from reference images into the sampled/generated image.
 
