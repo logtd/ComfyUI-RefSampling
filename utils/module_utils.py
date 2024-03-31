@@ -3,6 +3,7 @@ import torch
 from ..modules.attn_wrapper import get_attn_wrapper
 from ..modules.unet_wrapper import get_unet_wrapper
 from ..modules.ref_controller import RefController
+from ..modules.block_type import BlockType
 
 
 def isinstance_str(x: object, cls_name: str):
@@ -53,7 +54,7 @@ def setup_ref_attn(model, attn_type):
     model = model.model.diffusion_model
     block_modules = list(filter(is_named_module_transformer_block, model.named_modules()))
     block_modules = list(map(lambda x: x[1], block_modules))
-    block_modules = sorted(block_modules, key=sort_block)
+    
 
     ref_controller = RefController()
 
@@ -65,6 +66,16 @@ def setup_ref_attn(model, attn_type):
             attn.ref_attn_weight = float(i) / float(len(block_modules))
             ref_controller.add_module(attn)
 
+    block_modules = sorted(block_modules, key=sort_block)
+    for i, block_module in enumerate(block_modules):
+        attn.ref_attn_weight = float(i) / float(len(block_modules))
+
+    output_modules = list(filter(is_named_module_transformer_block, model.output_blocks.named_modules()))
+    output_modules = list(map(lambda x: x[1], output_modules))
+    for i, block_module in enumerate(output_modules):
+        attn = block_module.attn1
+        attn.block_type = BlockType.OUTPUT
+        attn.block_idx = i
 
     temp_transformers = list(filter(lambda x: isinstance_str(x, 'TemporalTransformer3DModel'), model.named_modules()))
 
