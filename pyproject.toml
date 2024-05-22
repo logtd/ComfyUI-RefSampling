@@ -1,6 +1,6 @@
 [project]
 name = "comfyui-refsampling"
-description = ""
+description = "Nodes:Apply Ref UNet, Ref Sampler, Ref Sampler Custom"
 version = "1.0.0"
 license = "LICENSE"
 
