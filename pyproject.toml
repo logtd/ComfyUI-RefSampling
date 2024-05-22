@@ -1,0 +1,14 @@
+[project]
+name = "comfyui-refsampling"
+description = ""
+version = "1.0.0"
+license = "LICENSE"
+
+[project.urls]
+Repository = "https://github.com/logtd/ComfyUI-RefSampling"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "ComfyUI-RefSampling"
+Icon = ""
